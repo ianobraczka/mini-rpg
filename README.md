@@ -2,8 +2,6 @@
 
 Small **grid-based** RPG used to teach **clean Python layout**, **objects**, and **separation of concerns** without building a heavy “engine”.
 
-> **Note:** This repository’s git history has always been **terminal-based** (`print` / `input`). There was no earlier pygame version in this repo. The **pygame window** is an **optional front-end** that reuses the same `Game` logic.
-
 ## Purpose
 
 - Show how to split **entities**, **combat rules**, **game flow**, and **I/O** (terminal vs. window) into different modules.
@@ -11,13 +9,13 @@ Small **grid-based** RPG used to teach **clean Python layout**, **objects**, and
 
 ## How to run the game
 
-### Terminal (original style)
+### Terminal
 
 ```bash
 python3 -m mini_rpg
 ```
 
-### Pygame window (optional)
+### Graphical window (pygame)
 
 ```bash
 python3 -m pip install -r requirements-game.txt
