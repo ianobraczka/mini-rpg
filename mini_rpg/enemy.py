@@ -10,15 +10,12 @@ from mini_rpg.utils import random_cell_not_on_player
 class Enemy:
     """Base enemy: chases the player and attacks when adjacent."""
 
-    symbol: str = "!"
-    hp: int = 4
-
     def __init__(self, player_x: int, player_y: int) -> None:
         self.cooldown: float = 2
         self.speed: int = 1
         self.damage: int = 2
-        self.symbol = "!"
-        self.hp = 4
+        self.symbol: str = "!"
+        self.hp: int = 4
         self.position_x, self.position_y = random_cell_not_on_player(player_x, player_y)
 
     def play(self, player_x: int, player_y: int, player: object) -> None:
