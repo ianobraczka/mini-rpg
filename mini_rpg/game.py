@@ -42,20 +42,30 @@ class Game:
             enemy_hp_display=enemy_hp,
         )
 
+    def apply_player_command(self, move: str) -> bool:
+        """Apply one player command (move or attack). Returns True if mana was spent."""
+        ok = self.player.play(move, self.enemies)
+        if ok:
+            combat.remove_dead_enemies(self.enemies)
+            self._spawn_enemies_if_empty()
+        return ok
+
     def run_player_phase(self) -> None:
-        """Player spends mana on moves/attacks until mana is 0."""
+        """Player spends mana on moves/attacks until mana is 0 (terminal; uses blocking input)."""
         while self.player.mana > 0:
             self.render()
             move = cli.prompt_move()
-            self.player.play(move, self.enemies)
-            combat.remove_dead_enemies(self.enemies)
-            self._spawn_enemies_if_empty()
+            self.apply_player_command(move)
 
-    def run_enemy_phase(self) -> None:
-        """Each living enemy takes a turn."""
-        self.render()
+    def execute_enemy_phase(self) -> None:
+        """Each living enemy takes one turn (no rendering)."""
         for enemy in list(self.enemies):
             enemy.play(self.player.position_x, self.player.position_y, self.player)
+
+    def run_enemy_phase(self) -> None:
+        """Enemy phase with terminal rendering before and after."""
+        self.render()
+        self.execute_enemy_phase()
         self.render()
 
     def _spawn_enemies_if_empty(self) -> None:
@@ -67,14 +77,26 @@ class Game:
                 enemy = Orc(self.player.position_x, self.player.position_y)
             self.enemies.append(enemy)
 
-    def check_game_over(self) -> None:
-        """Set game_over and optionally continue on 'coin' input."""
-        if combat.player_is_defeated(self.player.hp):
-            self.game_over = True
+    def player_is_dead(self) -> bool:
+        return combat.player_is_defeated(self.player.hp)
+
+    def try_continue_after_gameover(self, coin: str) -> None:
+        """If input is the magic string ``coin``, reset (same as original terminal game)."""
+        if coin == "coin":
+            self.game_over = False
+            self.reset()
+
+    def check_game_over(self, *, interactive: bool = True) -> None:
+        """
+        If the player has no HP, enter game-over state.
+        When ``interactive`` is True, prompt in the terminal for ``coin`` to continue.
+        """
+        if not self.player_is_dead():
+            return
+        self.game_over = True
+        if interactive:
             coin = cli.prompt_continue_after_gameover()
-            if coin == "coin":
-                self.game_over = False
-                self.reset()
+            self.try_continue_after_gameover(coin)
 
     def reset(self) -> None:
         """Restart world state (original reset behaviour)."""
@@ -82,12 +104,16 @@ class Game:
         self.enemies = []
         self._spawn_initial_enemy()
 
+    def end_turn(self, *, interactive: bool = True) -> None:
+        """After enemy phase: game-over check and refresh player mana."""
+        self.check_game_over(interactive=interactive)
+        self.player.mana = 2
+
     def run_turn(self) -> None:
         """One full round: player phase, enemy phase, refresh mana, game-over check."""
         self.run_player_phase()
         self.run_enemy_phase()
-        self.check_game_over()
-        self.player.mana = 2
+        self.end_turn(interactive=True)
 
     def run(self) -> None:
         """Main loop until game_over stays True (only after game over without coin)."""
