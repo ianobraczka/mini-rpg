@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import random
-
 from mini_rpg.utils import random_cell_not_on_player
 
 
